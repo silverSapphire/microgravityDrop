@@ -78,7 +78,7 @@ void datalog(int xRaw, int yRaw, int zRaw)
   
     // if the file is available, write to it:
     if(dataFile) {
-      dataFile.print(millis());
+      dataFile.print(millis()); 
       dataFile.print(", ");
       dataFile.print(xRaw);
       dataFile.print(", ");

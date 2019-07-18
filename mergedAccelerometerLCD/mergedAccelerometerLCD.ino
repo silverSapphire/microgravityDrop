@@ -11,8 +11,8 @@ int yRawMax = 512;
 int zRawMin = 512;
 int zRawMax = 512;
 
-int expected_xRawMin = 409; // Taken from manual calibration run.
-int expected_xRawMax = 620;
+int expected_xRawMin = 415; // Taken from manual calibration run.
+int expected_xRawMax = 610;
 int expected_yRawMin = 402;
 int expected_yRawMax = 612;
 int expected_zRawMin = 406;
@@ -156,7 +156,7 @@ void runCalibrationSequence()
     }
 
     // Check for calibration end sequence. ----------------
-    if(buttonState == HIGH && pushed == 0)  // Start timer.u
+    if(buttonState == HIGH && pushed == 0)  // Start timer.
     {
       pushed = 1;
       timePushed = millis(); 
@@ -165,12 +165,15 @@ void runCalibrationSequence()
     if(buttonState == LOW)  // End timer.
     {
       pushed = 0;
+      Serial.println("Not pushed!");
     }
 
     if(pushed && (millis() - timePushed >= 5000)) // After 5 seconds pushed, exit calibration.
     {
-      calibrated = 1;
+      calibrated = 0;
     }
+
+    delay(50);
 
   }
   
@@ -187,8 +190,6 @@ void autoCalibrate()
   Serial.println(yRaw);
   Serial.println(zRaw);
   Serial.println("----");
-  Serial.println(expected_xRawMin);
-  Serial.println(xRawMin);
 
   // Readjust mins and maxes if necessary, according to input.
   if(xRaw < xRawMin)
