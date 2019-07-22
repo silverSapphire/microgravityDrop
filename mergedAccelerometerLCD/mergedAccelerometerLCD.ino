@@ -18,6 +18,9 @@ int expected_yRawMax = 612;
 int expected_zRawMin = 406;
 int expected_zRawMax = 651;
 
+int scaled_zRawMin = 415;
+int scaled_zRawMax = 624;
+
 // LCD vars
 const int rs = 5, en = 6, d4 = 7, d5 = 8, d6 = 9, d7 = 10;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
@@ -28,16 +31,15 @@ const int chipSelect = 4;
 String fileName = "";
 
 // Accelerometer vars
-const int xInput = A2;
+const int xInput = A0;
 const int yInput = A1;
-const int zInput = A0;
+const int zInput = A2;
 
 
 void setup() 
 {
        
   analogReference(EXTERNAL);
-  Serial.begin(9600);
 
   lcd.begin(16, 2);
   
@@ -57,9 +59,9 @@ void loop()
   // Use the calibration script to get the raw min and max values for x, y, and z.
   // WARNING: Positive z is inaccurate, 0.75 G measured = 1 G real.
   // We only accurately measure +/- 1 G.
-  float xAccel = map(analogRead(xInput), xRawMin, xRawMax, -1000.0, 1000.0) / 1000.0;
-  float yAccel = map(analogRead(yInput), yRawMin, yRawMax, -1000.0, 1000.0) / 1000.0;
-  float zAccel = map(analogRead(zInput), zRawMin, zRawMax, -1000.0, 1000.0) / 1000.0 * 1.25;  //Scale by 1.25.
+  float xAccel = map(analogRead(xInput), expected_xRawMin, expected_xRawMax, -1000.0, 1000.0) / 1000.0;
+  float yAccel = map(analogRead(yInput), expected_yRawMin, expected_yRawMax, -1000.0, 1000.0) / 1000.0;
+  float zAccel = map(analogRead(zInput), expected_zRawMin, expected_zRawMax, -1000.0, 1000.0) / 1000.0 * 1.29;  //Scale by 1.25.
 
   Serial.print("X, Y, Z  :: ");
   Serial.print(xAccel,4);
@@ -96,6 +98,9 @@ void datalog(int xRaw, int yRaw, int zRaw)
       dataFile.println(zRaw);
             
       dataFile.close();
+
+      lcd.setCursor(13, 1);
+      lcd.print("OK");
     }
 
     else
@@ -165,12 +170,11 @@ void runCalibrationSequence()
     if(buttonState == LOW)  // End timer.
     {
       pushed = 0;
-      Serial.println("Not pushed!");
     }
 
     if(pushed && (millis() - timePushed >= 5000)) // After 5 seconds pushed, exit calibration.
     {
-      calibrated = 0;
+      calibrated = 1;
     }
 
     delay(50);
@@ -186,22 +190,13 @@ void autoCalibrate()
   int yRaw = analogRead(yInput);
   int zRaw = analogRead(zInput);
 
-  Serial.println(xRaw);
-  Serial.println(yRaw);
-  Serial.println(zRaw);
-  Serial.println("----");
-
   // Readjust mins and maxes if necessary, according to input.
   if(xRaw < xRawMin)
   {
     xRawMin = xRaw;
-    Serial.println("X Min!");
-    Serial.println(expected_xRawMin);
-    Serial.println(xRawMin);
 
     if(xRawMin <= expected_xRawMin)
     {
-      Serial.println("Entered for x!");
       lcd.setCursor(1, 1);
       lcd.print("-");
     }
@@ -220,7 +215,6 @@ void autoCalibrate()
   if(yRaw < yRawMin)
   {
     yRawMin = yRaw;
-    Serial.println("Min Y!");
 
     if(yRawMin <= expected_yRawMin)
     {
@@ -242,9 +236,8 @@ void autoCalibrate()
   if(zRaw < zRawMin)
   {
     zRawMin = zRaw;
-    Serial.println("Min Z!");
 
-    if(zRawMin <= expected_zRawMin)
+    if(zRawMin <= scaled_zRawMin)
     {
       lcd.setCursor(11, 1);
       lcd.print("-");
@@ -254,7 +247,7 @@ void autoCalibrate()
   {
     zRawMax = zRaw;
 
-    if(zRawMax >= expected_zRawMax)
+    if(zRawMax >= scaled_zRawMax)
     {
       lcd.setCursor(12, 1);
       lcd.print("+");
