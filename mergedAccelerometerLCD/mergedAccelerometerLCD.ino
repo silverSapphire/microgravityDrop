@@ -155,10 +155,7 @@ void runCalibrationSequence()
     int buttonState = digitalRead(calibrationButton);
     
     // Take a calibration reading. ---------------------
-    if(buttonState == HIGH)
-    {
       autoCalibrate();
-    }
 
     // Check for calibration end sequence. ----------------
     if(buttonState == HIGH && pushed == 0)  // Start timer.
@@ -258,11 +255,12 @@ void autoCalibrate()
 
 void setupSD()
 {
-    
+
+  int fileNumber = 1;
+  
   if (SD.begin(chipSelect)) 
   {
     
-    int fileNumber = 1;
     int foundFileNumber = 0;
     
     fileName = "data" + (String)fileNumber + ".csv";
@@ -289,5 +287,9 @@ void setupSD()
     lcd.setCursor(11, 0);
     lcd.print("SDERR");
   }
+
+  // Print the file number to the monitor.
+  lcd.setCursor(14, 1);
+  lcd.print(fileNumber);
   
 }
